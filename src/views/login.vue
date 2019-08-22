@@ -1,16 +1,21 @@
 <template>
   <div class="login">
     <div class="container">
-        <img src="../assets/avatar.jpg" alt="" class="avatar">
+      <img src="../assets/avatar.jpg" alt class="avatar" />
       <el-form :model="loginForm" :rules="rules" ref="loginForm" class="demo-loginForm">
         <el-form-item prop="username">
-          <el-input v-model="loginForm.username"  placeholder="请输入用户名" prefix-icon="myicon-user"></el-input>
+          <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="myicon-user"></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input v-model="loginForm.password" placeholder="请输入密码" prefix-icon="myicon-key"></el-input>
+          <el-input
+            type="password"
+            v-model="loginForm.password"
+            placeholder="请输入密码"
+            prefix-icon="myicon-key"
+          ></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" class="login-btn">登录</el-button>
+          <el-button type="primary" class="login-btn" @click="login">登录</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -18,6 +23,7 @@
 </template>
 
 <script>
+import { login } from '@/api/login_index.js'
 export default {
   data () {
     return {
@@ -27,14 +33,46 @@ export default {
       },
       rules: {
         username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' },
-          { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+          //   { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
-          { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+          { required: true, message: '请输入密码', trigger: 'blur' }
+          //   { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
         ]
       }
+    }
+  },
+  methods: {
+    login () {
+      this.$refs.loginForm.validate(valid => {
+        if (valid) {
+          login(this.loginForm)
+            .then(res => {
+              if (res.data.meta.status === 200) {
+                console.log(res)
+                // 将token存储在本地
+                localStorage.setItem('login_token', res.data.data.token)
+                // 实现路由跳转
+                this.$router.push({ name: 'home' })
+              } else {
+                this.$message({
+                  message: res.data.meta.msg,
+                  type: 'error'
+                })
+              }
+            })
+            .catch(() => {
+              this.$message({
+                message: '服务器异常，请稍后重试',
+                type: 'error'
+              })
+            })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
     }
   }
 }

@@ -9,6 +9,19 @@ import '@/styles/index.less'
 import router from '@/router/router.js'
 // 让Vue使用element-ui
 Vue.use(ElementUI)
+router.beforeEach((to, from, next) => {
+  console.log(to)
+  // 1.获取token
+  let mytoken = localStorage.getItem('login_token')
+  // 2.判断
+  if (mytoken || to.path === '/login') {
+    // 下一步
+    next()
+  } else {
+    // 重定向
+    next({ path: '/login' })
+  }
+})
 Vue.config.productionTip = false
 
 new Vue({
