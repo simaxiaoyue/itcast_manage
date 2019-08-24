@@ -69,7 +69,10 @@ export default {
               })
             })
         } else {
-          console.log('error submit!!')
+          this.$message({
+            message: '请检查输入的数据是否符合规范',
+            type: 'error'
+          })
           return false
         }
       })
