@@ -8,3 +8,13 @@ export const getAllUsers = (params) => {
     params
   })
 }
+
+// 2.添加用户数据
+
+export const addUser = (data) => {
+  return axios({
+    url: 'users',
+    method: 'post',
+    data
+  })
+}
