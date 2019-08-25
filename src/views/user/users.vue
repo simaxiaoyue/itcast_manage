@@ -28,7 +28,12 @@
       <el-table-column label="用户状态">
         <template slot-scope="scope">
           <!-- 自定义模板列,获取相应的数据  scope.row -->
-          <el-switch v-model="scope.row.mg_state" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+          <el-switch
+            v-model="scope.row.mg_state"
+            active-color="#13ce66"
+            inactive-color="#ff4949"
+            @change="changeState(scope.row.id,scope.row.mg_state)"
+          ></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="400">
@@ -37,10 +42,14 @@
             <el-button type="primary" icon="el-icon-edit" @click="showEdit(scope.row)"></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="分配角色" placement="top">
-            <el-button type="success" icon="el-icon-circle-plus-outline"  @click="showGrant(scope.row)"></el-button>
+            <el-button
+              type="success"
+              icon="el-icon-circle-plus-outline"
+              @click="showGrant(scope.row)"
+            ></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="删除" placement="top">
-            <el-button type="warning" icon="el-icon-delete"></el-button>
+            <el-button type="warning" icon="el-icon-delete" @click="delUser(scope.row.id)"></el-button>
           </el-tooltip>
         </template>
       </el-table-column>
@@ -121,7 +130,14 @@
   </div>
 </template>
 <script>
-import { getAllUsers, addUser, editUser, grantUserRole } from '@/api/user_index.js'
+import {
+  getAllUsers,
+  addUser,
+  editUser,
+  grantUserRole,
+  updateUserState,
+  delUserById
+} from '@/api/user_index.js'
 import { getAllRoleList } from '@/api/role_index.js'
 export default {
   data () {
@@ -180,6 +196,59 @@ export default {
     }
   },
   methods: {
+    delUser (id) {
+      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          delUserById(id)
+            .then(res => {
+              console.log(res)
+              if (res.data.meta.status === 200) {
+                this.$message.success('删除成功')
+                this.userobj.pagenum =
+                  Math.floor(this.total / this.userobj.pagesize) <=
+                  this.userobj.pagenum
+                    ? this.userobj.pagenum - 1
+                    : this.userobj.pagenum
+                console.log(
+                  this.total,
+                  this.userobj.pagesize,
+                  this.userobj.pagenum
+                )
+                this.init()
+              } else {
+                this.$message.error('删除失败')
+              }
+            })
+            .catch(() => {
+              this.$message.error('删除失败')
+            })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    changeState (uid, type) {
+      updateUserState(uid, type)
+        .then(res => {
+          console.log(res)
+          if (res.data.meta.status === 200) {
+            this.$message.success('修改状态成功')
+            this.init()
+          } else {
+            this.$message.error('修改状态失败')
+          }
+        })
+        .catch(() => {
+          this.$message.error('修改状态失败')
+        })
+    },
     grant () {
       if (this.grantForm.rid) {
         grantUserRole(this.grantForm)
