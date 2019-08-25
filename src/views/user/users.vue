@@ -32,12 +32,12 @@
         </template>
       </el-table-column>
       <el-table-column label="操作" width="400">
-        <template slot-scope ="scope">
+        <template slot-scope="scope">
           <el-tooltip class="item" effect="dark" content="编辑" placement="top">
             <el-button type="primary" icon="el-icon-edit" @click="showEdit(scope.row)"></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="分配角色" placement="top">
-            <el-button type="success" icon="el-icon-circle-plus-outline"></el-button>
+            <el-button type="success" icon="el-icon-circle-plus-outline"  @click="showGrant(scope.row)"></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="删除" placement="top">
             <el-button type="warning" icon="el-icon-delete"></el-button>
@@ -96,14 +96,43 @@
         <el-button type="primary" @click="edit">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 用户角色分配 -->
+    <el-dialog title="角色分配" :visible.sync="grantDialogFormVisible">
+      <el-form :model="grantForm" :label-width="'80px'" :rules="rules" ref="grantForm">
+        <el-form-item label="用户名">
+          <span>{{grantForm.username}}</span>
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="grantForm.rid" placeholder="请选择">
+            <el-option
+              v-for="item in roleList"
+              :key="item.value"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="grantDialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="grant">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
-import { getAllUsers, addUser, editUser } from '@/api/user_index.js'
-
+import { getAllUsers, addUser, editUser, grantUserRole } from '@/api/user_index.js'
+import { getAllRoleList } from '@/api/role_index.js'
 export default {
   data () {
     return {
+      roleList: [],
+      grantForm: {
+        username: '',
+        id: '',
+        rid: ''
+      },
+      grantDialogFormVisible: false,
       editForm: {
         username: '',
         email: '',
@@ -151,6 +180,33 @@ export default {
     }
   },
   methods: {
+    grant () {
+      if (this.grantForm.rid) {
+        grantUserRole(this.grantForm)
+          .then(res => {
+            console.log(res)
+            if (res.data.meta.status === 200) {
+              this.$message.success('分配成功')
+              this.grantDialogFormVisible = false
+              // this.init()
+            } else {
+              this.$message.error('分配失败')
+            }
+          })
+          .catch(err => {
+            console.log(err)
+            this.$message.error('分配失败')
+          })
+      } else {
+        this.$message.error('请选择一个角色')
+      }
+    },
+    showGrant (row) {
+      this.grantDialogFormVisible = true
+      this.grantForm.username = row.username
+      this.grantForm.rid = row.rid
+      this.grantForm.id = row.id
+    },
     edit () {
       editUser(this.editForm)
         .then(res => {
@@ -165,7 +221,7 @@ export default {
         })
         .catch(err => {
           console.log(err)
-          this.$message.error('服务器异常')
+          this.$message.error('编辑失败')
         })
     },
     showEdit (row) {
@@ -227,6 +283,16 @@ export default {
   },
   mounted () {
     this.init()
+    getAllRoleList()
+      .then(res => {
+        console.log(res)
+        if (res.data.meta.status === 200) {
+          this.roleList = res.data.data
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
 }
 </script>
