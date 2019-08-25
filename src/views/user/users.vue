@@ -17,7 +17,7 @@
       >
         <el-button slot="append" icon="el-icon-search" @click="init"></el-button>
       </el-input>
-      <el-button type="success"  @click='addDialogFormVisible = true'>添加用户</el-button>
+      <el-button type="success" @click="addDialogFormVisible = true">添加用户</el-button>
     </div>
     <!-- 表格展示区域 -->
     <el-table :data="userList" border style="width: 100%">
@@ -32,9 +32,9 @@
         </template>
       </el-table-column>
       <el-table-column label="操作" width="400">
-        <template slot-scope>
+        <template slot-scope ="scope">
           <el-tooltip class="item" effect="dark" content="编辑" placement="top">
-            <el-button type="primary" icon="el-icon-edit"></el-button>
+            <el-button type="primary" icon="el-icon-edit" @click="showEdit(scope.row)"></el-button>
           </el-tooltip>
           <el-tooltip class="item" effect="dark" content="分配角色" placement="top">
             <el-button type="success" icon="el-icon-circle-plus-outline"></el-button>
@@ -75,37 +75,42 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addDialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click='add'>确 定</el-button>
+        <el-button type="primary" @click="add">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 编辑用户数据 -->
+    <el-dialog title="编辑用户" :visible.sync="editDialogFormVisible">
+      <el-form :model="editForm" :label-width="'80px'" :rules="rules" ref="editForm">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="editForm.username" auto-complete="off" disabled style="width:100px"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editForm.email" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" prop="mobile">
+          <el-input v-model="editForm.mobile" auto-complete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editDialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="edit">确 定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 <script>
-import { getAllUsers, addUser } from '@/api/user_index.js'
+import { getAllUsers, addUser, editUser } from '@/api/user_index.js'
 
 export default {
   data () {
     return {
-      rules: {
-        username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' }
-        ],
-        password: [
-          { required: true, message: '请输入密码', trigger: 'blur' }
-        ],
-        email: [
-          { required: true, message: '请输入电子邮箱', trigger: 'blur' },
-          {
-            pattern: /\w+[@]\w+[.]\w+/, message: '请输入合法的电子邮箱', trigger: 'blur'
-          }
-        ],
-        mobile: [
-          { required: true, message: '请输入手机号码', trigger: 'blur' },
-          {
-            pattern: /^1\d{10}$/, message: '请输入合法的手机号码', trigger: 'blur'
-          }
-        ]
+      editForm: {
+        username: '',
+        email: '',
+        mobile: '',
+        id: ''
       },
+      editDialogFormVisible: false,
       addDialogFormVisible: false,
       addForm: {
         username: '',
@@ -120,10 +125,56 @@ export default {
         query: '',
         pagenum: 1,
         pagesize: 2
+      },
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+        email: [
+          { required: true, message: '请输入电子邮箱', trigger: 'blur' },
+          {
+            pattern: /\w+[@]\w+[.]\w+/,
+            message: '请输入合法的电子邮箱',
+            trigger: 'blur'
+          }
+        ],
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' },
+          {
+            pattern: /^1\d{10}$/,
+            message: '请输入合法的手机号码',
+            trigger: 'blur'
+          }
+        ]
       }
     }
   },
   methods: {
+    edit () {
+      editUser(this.editForm)
+        .then(res => {
+          console.log(res)
+          if (res.data.meta.status === 200) {
+            this.$message.success('编辑成功')
+            this.editDialogFormVisible = false
+            this.init()
+          } else {
+            this.$message.error('编辑失败')
+          }
+        })
+        .catch(err => {
+          console.log(err)
+          this.$message.error('服务器异常')
+        })
+    },
+    showEdit (row) {
+      this.editDialogFormVisible = true
+      this.editForm.username = row.username
+      this.editForm.email = row.email
+      this.editForm.mobile = row.mobile
+      this.editForm.id = row.id
+    },
     add () {
       this.$refs.addForm.validate(valid => {
         if (valid) {

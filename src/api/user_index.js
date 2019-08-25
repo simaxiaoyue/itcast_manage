@@ -10,11 +10,18 @@ export const getAllUsers = (params) => {
 }
 
 // 2.添加用户数据
-
 export const addUser = (data) => {
   return axios({
     url: 'users',
     method: 'post',
+    data
+  })
+}
+// 编辑用户数据
+export const editUser = (data) => {
+  return axios({
+    url: `users/${data.id}`,
+    method: 'put',
     data
   })
 }
