@@ -209,7 +209,7 @@ export default {
               if (res.data.meta.status === 200) {
                 this.$message.success('删除成功')
                 this.userobj.pagenum =
-                  Math.floor(this.total / this.userobj.pagesize) <=
+                  Math.floor(this.total / this.userobj.pagesize) <
                   this.userobj.pagenum
                     ? this.userobj.pagenum - 1
                     : this.userobj.pagenum
