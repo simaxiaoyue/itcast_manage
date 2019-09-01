@@ -17,3 +17,12 @@ export const addCate = (data) => {
     data
   })
 }
+
+// // 3.图片上传
+// export const addCate = (data) => {
+//   return axios({
+//     url: 'goods',
+//     method: 'post',
+//     data
+//   })
+// }

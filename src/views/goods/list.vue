@@ -17,7 +17,7 @@
       >
         <el-button slot="append" icon="el-icon-search" @click="init"></el-button>
       </el-input>
-            <el-button type="success" @click="$router.push({name: 'add'})">添加商品</el-button>
+      <el-button type="success" @click="$router.push({name: 'add'})">添加商品</el-button>
     </div>
     <!-- 表格展示区域 -->
     <el-table :data="goodsList" border style="width: 100%">
@@ -26,9 +26,7 @@
       <el-table-column prop="goods_price" label="商品价格" width="180"></el-table-column>
       <el-table-column prop="goods_weight" label="商品重量"></el-table-column>
       <el-table-column prop="add_time" label="创建时间">
-        <template slot-scope="scope">
-            {{scope.row.add_time | timeFormat}}
-        </template>
+        <template slot-scope="scope">{{scope.row.add_time | timeFormat}}</template>
       </el-table-column>
       <el-table-column label="操作" width="400">
         <template slot-scope="scope">
@@ -83,9 +81,10 @@ export default {
     init () {
       getAllGoods(this.goodsobj).then(res => {
         console.log(res)
-        if (res.data.meta === 200) {
+        if (res.data.meta.status === 200) {
           this.goodsList = res.data.data.goods
           this.total = res.data.data.total
+          console.log(this.goodsList)
         }
       })
     },
